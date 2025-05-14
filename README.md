@@ -2,10 +2,10 @@
 
 Ce projet est une preuve de concept (PoC) de Command & Control (**C2**) furtif basé sur le protocole **ICMP** (ping), écrit en **C#**. Il permet de :
 
-* ✅ Effectuer du **beaconing** discret
-* ✅ Envoyer dynamiquement des **modules chiffrés RC4**
-* ✅ Exécuter les modules **en mémoire** (sans écriture disque)
-* ✅ Retourner les résultats à l’attaquant via ICMP
+* Effectuer du **beaconing** discret
+* Envoyer dynamiquement des **modules chiffrés RC4**
+* Exécuter les modules **en mémoire** (sans écriture disque)
+* Retourner les résultats à l’attaquant via ICMP
 
 > ⚠️ Utilisation uniquement en environnement LAB contrôlé, à des fins de recherche ou red teaming autorisé.
 
