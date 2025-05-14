@@ -7,6 +7,8 @@ Ce projet est une preuve de concept (PoC) de Command & Control (**C2**) furtif b
 * Exécuter les modules **en mémoire** (sans écriture disque)
 * Retourner les résultats à l’attaquant via ICMP
 
+Ce projet peut être l’étape 2 d’une attaque Red Team, après compromission initiale (via phishing, vulnérabilité, etc.)
+
 > ⚠️ Utilisation uniquement en environnement LAB contrôlé, à des fins de recherche ou red teaming autorisé.
 
 ---
