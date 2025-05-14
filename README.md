@@ -10,6 +10,14 @@ Ce projet est une preuve de concept (PoC) de Command & Control (**C2**) furtif b
 > ⚠️ Utilisation uniquement en environnement LAB contrôlé, à des fins de recherche ou red teaming autorisé.
 
 ---
+📁 RedTeamC2/
+├── HttpC2Agent.cs        ⇦ L'agent à déployer
+├── HttpC2Server.cs       ⇦ Le serveur C2
+├── ModuleBuilder.cs      ⇦ Le générateur de module (builder)
+├── Module1.cs            ⇦ Exemple de module (à personnaliser)
+├── module.enc            ⇦ Généré par le builder
+├── README.md             ⇦ Instructions détaillées
+
 
 ## Fonctionnement
 
