@@ -12,13 +12,28 @@ Ce projet peut être l’étape 2 d’une attaque Red Team, après compromission
 > ⚠️ Utilisation uniquement en environnement LAB contrôlé, à des fins de recherche ou red teaming autorisé.
 
 ---
-📁 RedTeamC2/
-├── HttpC2Agent.cs       ⇨ L'agent à déployer sur la machine cible (beacon + loader)
-├── HttpC2Server.cs      ⇨ Le serveur C2 (réception des beacons + envoi de modules)
-├── ModuleBuilder.cs     ⇨ Générateur de module (compile et chiffre avec RC4)
-├── Module1.cs           ⇨ Exemple de module offensif à personnaliser (méthode Run)
-├── module.enc           ⇨ Module chiffré généré par ModuleBuilder.cs (servi par le C2)
-├── README.md            ⇨ Instructions d’utilisation, compilation, exécution
+# 📁 RedTeamC2
+
+Structure du projet :
+
+- `HttpC2Agent.cs`  
+  ⇨ L'agent à déployer sur la machine cible (beacon + loader)
+
+- `HttpC2Server.cs`  
+  ⇨ Le serveur C2 (réception des beacons + envoi de modules)
+
+- `ModuleBuilder.cs`  
+  ⇨ Générateur de module (compile et chiffre avec RC4)
+
+- `Module1.cs`  
+  ⇨ Exemple de module offensif à personnaliser (méthode `Run`)
+
+- `module.enc`  
+  ⇨ Module chiffré généré par `ModuleBuilder.cs` (servi par le C2)
+
+- `README.md`  
+  ⇨ Instructions d’utilisation, compilation, exécution
+
 
 ## Fonctionnement
 
